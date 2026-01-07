@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Tasky" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.tasky.tasky.TaskyApplication" />
+    <module name="tasky" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

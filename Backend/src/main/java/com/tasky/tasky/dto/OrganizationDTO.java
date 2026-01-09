@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -19,5 +21,8 @@ public class OrganizationDTO {
     @Email(message = "Email should be valid")
     private String email;
 
-    private OrgStatus status;
+    @NotNull(message = "Password cannot be null")
+    private String password;
+
+    private OrgStatus status = OrgStatus.ACTIVE;
 }

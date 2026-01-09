@@ -1,9 +1,15 @@
 package com.tasky.tasky.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
 @Entity
 @Table
 public class Employee {
@@ -34,4 +40,9 @@ public class Employee {
     private Organization organization;
 
     private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 }

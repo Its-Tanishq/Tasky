@@ -12,22 +12,19 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 @Table
-public class Organization {
+public class ResetPasswordOTP {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
-    private String name;
-
-    @Column(unique = true)
     private String email;
 
-    private String password;
-    
-    @Enumerated(EnumType.STRING)
-    private OrgStatus status = OrgStatus.ACTIVE;
+    private int OTP;
+
+    private LocalDateTime expiryTime;
+
+    private Boolean isUsed = false;
 
     private LocalDateTime createdAt;
 
@@ -35,4 +32,5 @@ public class Organization {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
+
 }

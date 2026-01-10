@@ -9,7 +9,6 @@ import com.tasky.tasky.repo.OrganizationRepo;
 import com.tasky.tasky.repo.ResetPasswordOTPRepo;
 import com.tasky.tasky.template.EmailTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,9 +32,16 @@ public class OrganizationService {
     @Autowired
     private EmailTemplate emailTemplate;
 
-    // Need to update if available organization email is deleted then allow to create organization with same email
     public void createOrganization(OrganizationDTO organizationDTO) {
         Organization organization = mapToEntity(organizationDTO);
+
+        if (organizationRepo.findByEmailAndStaus(organization.getEmail()).isPresent()) {
+            throw new RuntimeException("Organization with this email already exists");
+        }
+        if (organizationRepo.findByNameAndStatus(organization.getName()).isPresent()) {
+            throw new RuntimeException("Organization with this name already exists");
+        }
+        
         try {
             organizationRepo.save(organization);
             emailService.sendHtmlMail(
@@ -43,16 +49,8 @@ public class OrganizationService {
                     "Welcome to Tasky - Your Organization Account is Active",
                     emailTemplate.buildWelcomeEmailTemplate(organization.getName())
             );
-        } catch (DataIntegrityViolationException e) {
-            String errorMessage = e.getMessage();
-            if (errorMessage.contains("duplicate key value") && errorMessage.contains("Key (email)=") && errorMessage.contains("Key (name)=")) {
-                throw new RuntimeException("Organization with this email and name already exists");
-            } else if (errorMessage.contains("duplicate key value") && errorMessage.contains("Key (email)=")) {
-                throw new RuntimeException("Organization with this email already exists");
-            } else if (errorMessage.contains("duplicate key value") && errorMessage.contains("Key (name)=")) {
-                throw new RuntimeException("Organization with this name already exists");
-            }
-            throw new RuntimeException("Failed to create organization: " + errorMessage);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
     }
 
@@ -131,8 +129,6 @@ public class OrganizationService {
 
         int otp = generateOTP();
         LocalDateTime expireTime = LocalDateTime.now().plusMinutes(10);
-
-        System.out.println("OTP is: " + otp);
 
         ResetPasswordOTP resetPasswordOTP = new ResetPasswordOTP();
         resetPasswordOTP.setOTP(otp);

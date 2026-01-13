@@ -1,9 +1,13 @@
 package com.tasky.tasky.controller;
 
 import com.tasky.tasky.dto.OrganizationDTO;
+import com.tasky.tasky.security.JWTUtil;
 import com.tasky.tasky.service.OrganizationService;
+import com.tasky.tasky.service.RefreshTokenService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,16 +20,62 @@ public class OrganizationController {
     @Autowired
     private OrganizationService organizationService;
 
+    @Autowired
+    private JWTUtil jwtUtil;
+
+    @Autowired
+    private RefreshTokenService refreshTokenService;
+
     @PostMapping("/create-organization")
-    public ResponseEntity<?> createOrganization(@Valid @RequestBody OrganizationDTO orgnizationDTO) {
-        organizationService.createOrganization(orgnizationDTO);
-        return ResponseEntity.ok("Organization Created Successfully");
+    public ResponseEntity<?> createOrganization(@Valid @RequestBody OrganizationDTO organizationDTO) {
+        organizationService.createOrganization(organizationDTO);
+
+        String accessToken = jwtUtil.generateAccessToken(organizationDTO.getEmail());
+        String refreshToken = jwtUtil.generateRefreshToken(organizationDTO.getEmail());
+
+        refreshTokenService.createRefreshToken(organizationDTO.getEmail());
+
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(false) // Set to true in production
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60) // 7 days in seconds
+                .build();
+
+        Map<String, String> response = Map.of(
+                "message", "Organization Created Successfully",
+                "accessToken", accessToken
+        );
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                .body(response);
     }
 
     @PostMapping("/login-organization")
-    public ResponseEntity<?> loginOrganization(@RequestBody OrganizationDTO orgnizationDTO) {
-        organizationService.loginOrganization(orgnizationDTO);
-        return ResponseEntity.ok("Organization Logged In Successfully");
+    public ResponseEntity<?> loginOrganization(@RequestBody OrganizationDTO organizationDTO) {
+        organizationService.loginOrganization(organizationDTO);
+
+        String accessToken = jwtUtil.generateAccessToken(organizationDTO.getEmail());
+        String refreshToken = jwtUtil.generateRefreshToken(organizationDTO.getEmail());
+
+        refreshTokenService.createRefreshToken(organizationDTO.getEmail());
+
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(false) // Set to true in production
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60) // 7 days in seconds
+                .build();
+
+        Map<String, String> response = Map.of(
+                "message", "Organization Logged In Successfully",
+                "accessToken", accessToken
+        );
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                .body(response);
     }
 
     @PutMapping("/update-organization")

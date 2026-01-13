@@ -2,11 +2,8 @@ package com.tasky.tasky.service;
 
 import com.tasky.tasky.dto.OrganizationDTO;
 import com.tasky.tasky.exception.ResourceNotFoundException;
-import com.tasky.tasky.model.OrgStatus;
-import com.tasky.tasky.model.Organization;
-import com.tasky.tasky.model.ResetPasswordOTP;
-import com.tasky.tasky.repo.OrganizationRepo;
-import com.tasky.tasky.repo.ResetPasswordOTPRepo;
+import com.tasky.tasky.model.*;
+import com.tasky.tasky.repo.*;
 import com.tasky.tasky.template.EmailTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +19,12 @@ public class OrganizationService {
 
     @Autowired
     private ResetPasswordOTPRepo resetPasswordOTPRepo;
+
+    @Autowired
+    private EmployeeRepo employeeRepo;
+
+    @Autowired
+    private RoleRepo roleRepo;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -43,7 +46,15 @@ public class OrganizationService {
         }
         
         try {
-            organizationRepo.save(organization);
+            // Save organization first
+            Organization savedOrganization = organizationRepo.save(organization);
+            
+            // Create owner role for the organization
+            Role ownerRole = createOwnerRole(savedOrganization);
+            
+            // Create owner employee with same email and password
+            createOwnerEmployee(organizationDTO, savedOrganization, ownerRole);
+            
             emailService.sendHtmlMail(
                     organization.getEmail(),
                     "Welcome to Tasky - Your Organization Account is Active",
@@ -55,12 +66,20 @@ public class OrganizationService {
     }
 
     public void loginOrganization(OrganizationDTO organizationDTO) {
-        Organization organization = organizationRepo.findByEmail(organizationDTO.getEmail()).orElseThrow(() -> new ResourceNotFoundException("Organization Not Found"));
-        if (!passwordEncoder.matches(organizationDTO.getPassword(), organization.getPassword())) {
+        // Check if employee exists with this email (since we now create employees for organizations)
+        Employee employee = employeeRepo.findByEmail(organizationDTO.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("Employee/Organization Not Found"));
+        
+        if (!passwordEncoder.matches(organizationDTO.getPassword(), employee.getPassword())) {
             throw new RuntimeException("Invalid Credentials");
         }
+
+        Organization organization = employee.getOrganization();
         if (organization.getStatus() == OrgStatus.DELETED) {
             throw new RuntimeException("Organization is deleted");
+        }
+        if (organization.getStatus() == OrgStatus.SUSPENDED) {
+            throw new RuntimeException("Organization is suspended");
         }
     }
 
@@ -264,6 +283,24 @@ public class OrganizationService {
         return organization;
     }
 
+    private Role createOwnerRole(Organization organization) {
+        Role ownerRole = new Role();
+        ownerRole.setName("OWNER");
+        ownerRole.setOrganization(organization);
+        return roleRepo.save(ownerRole);
+    }
+
+    private void createOwnerEmployee(OrganizationDTO organizationDTO, Organization organization, Role ownerRole) {
+        Employee ownerEmployee = new Employee();
+        ownerEmployee.setName(organizationDTO.getName() + " Owner"); // You can modify this as needed
+        ownerEmployee.setEmail(organizationDTO.getEmail());
+        ownerEmployee.setPassword(passwordEncoder.encode(organizationDTO.getPassword()));
+        ownerEmployee.setOrganization(organization);
+        ownerEmployee.setRole(ownerRole);
+        ownerEmployee.setIsActive(true);
+        
+        employeeRepo.save(ownerEmployee);
+    }
 
     public int generateOTP() {
         return (int)(Math.random() * 900000) + 100000;

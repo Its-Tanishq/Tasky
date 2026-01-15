@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface EmployeeRepo extends JpaRepository<Employee, Long> {
 
     Optional<Employee> findByEmail(String email);
+    Optional<List<Employee>> findByRoleId(Long roleId);
     List<EmployeeDTO> findByIsActiveTrue();
     List<EmployeeDTO> findByIsActiveFalse();
 }

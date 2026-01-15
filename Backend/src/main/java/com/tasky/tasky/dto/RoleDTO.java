@@ -13,6 +13,5 @@ public class RoleDTO {
     @NotNull(message = "Role name cannot be null")
     private String name;
 
-    @NotNull(message = "Organization ID cannot be null")
     private Long organizationId;
 }

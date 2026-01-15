@@ -43,9 +43,9 @@ public class JWTUtil {
         claims.put("role", Math.toIntExact(employee.getRole().getId()));
 
         return Jwts.builder()
+                .setClaims(claims)
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setClaims(claims)
                 .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
                 .signWith(getSigningKey())
                 .compact();

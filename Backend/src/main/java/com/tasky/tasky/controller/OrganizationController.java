@@ -11,6 +11,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -33,23 +34,23 @@ public class OrganizationController {
         String accessToken = jwtUtil.generateAccessToken(organizationDTO.getEmail());
         String refreshToken = jwtUtil.generateRefreshToken(organizationDTO.getEmail());
 
-        refreshTokenService.createRefreshToken(organizationDTO.getEmail());
+        refreshTokenService.createRefreshToken(organizationDTO.getEmail(), refreshToken);
 
-        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
-                .secure(false) // Set to true in production
+                .secure(false) // set true on https / production
                 .path("/")
-                .maxAge(7 * 24 * 60 * 60) // 7 days in seconds
+                .maxAge(-1)
+                .sameSite("Lax") // set to None on production with https
                 .build();
 
-        Map<String, String> response = Map.of(
-                "message", "Organization Created Successfully",
-                "accessToken", accessToken
-        );
+        Map<String, String> responseBody = new HashMap<>();
+        responseBody.put("message", "Organization Created Successfully");
+        responseBody.put("accessToken", accessToken);
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
-                .body(response);
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(responseBody);
     }
 
     @PostMapping("/login-organization")
@@ -59,23 +60,23 @@ public class OrganizationController {
         String accessToken = jwtUtil.generateAccessToken(organizationDTO.getEmail());
         String refreshToken = jwtUtil.generateRefreshToken(organizationDTO.getEmail());
 
-        refreshTokenService.createRefreshToken(organizationDTO.getEmail());
+        refreshTokenService.createRefreshToken(organizationDTO.getEmail(), refreshToken);
 
-        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
-                .secure(false) // Set to true in production
+                .secure(false) // set true on https / production
                 .path("/")
-                .maxAge(7 * 24 * 60 * 60) // 7 days in seconds
+                .maxAge(7 * 24 * 60 * 60)
+                .sameSite("Lax") // set to None on production with https
                 .build();
 
-        Map<String, String> response = Map.of(
-                "message", "Organization Logged In Successfully",
-                "accessToken", accessToken
-        );
+        Map<String, String> responseBody = new HashMap<>();
+        responseBody.put("message", "Organization Logged In Successfully");
+        responseBody.put("accessToken", accessToken);
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
-                .body(response);
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(responseBody);
     }
 
     @PutMapping("/update-organization")

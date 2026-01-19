@@ -8,6 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
+
 @Service
 public class RefreshTokenService {
 
@@ -18,28 +21,41 @@ public class RefreshTokenService {
     private EmployeeRepo employeeRepo;
 
     @Transactional
-    public RefreshToken createRefreshToken(String email) {
+    public RefreshToken createRefreshToken(String email, String token) {
         Employee employee = employeeRepo.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Employee not found with email: " + email));
         
-        // Delete any existing refresh tokens for this employee to prevent accumulation
         refreshTokenRepo.deleteByEmployee(employee);
         
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setEmployee(employee);
-        refreshToken.setToken(java.util.UUID.randomUUID().toString());
+        refreshToken.setToken(token);
         return refreshTokenRepo.save(refreshToken);
     }
 
-    public RefreshToken verifyRefreshToken(String token) {
-        RefreshToken refreshToken = refreshTokenRepo.findByToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
-
-        if (refreshToken.getExpiryDate().isBefore(java.time.LocalDateTime.now())) {
-            refreshTokenRepo.delete(refreshToken);
-            throw new IllegalArgumentException("Refresh token has expired");
+    @Transactional
+    public boolean isValidRefreshToken(String token) {
+        Optional<RefreshToken> refreshTokenOpt = refreshTokenRepo.findByToken(token);
+        
+        if (refreshTokenOpt.isEmpty()) {
+            return false; 
         }
+        
+        RefreshToken refreshToken = refreshTokenOpt.get();
+        
+        if (refreshToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            refreshTokenRepo.delete(refreshToken);
+            return false;
+        }
+        
+        return true; 
+    }
 
-        return refreshToken;
+    @Transactional
+    public void removeToken(String email) {
+        Employee employee = employeeRepo.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Employee not found with email: " + email));
+
+        refreshTokenRepo.deleteByEmployee(employee);
     }
 }

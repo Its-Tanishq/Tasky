@@ -28,4 +28,6 @@ public class EmployeeDTO {
 
     @NotNull(message = "Organization cannot be null")
     private String organizationId;
+
+    private String createdBy;
 }

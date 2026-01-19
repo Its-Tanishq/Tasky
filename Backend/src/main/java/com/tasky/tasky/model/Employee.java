@@ -39,6 +39,8 @@ public class Employee {
     @JoinColumn(name = "organization_id")
     private Organization organization;
 
+    private String createdBy;
+
     private LocalDateTime createdAt;
 
     @PrePersist

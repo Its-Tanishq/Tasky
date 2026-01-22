@@ -18,7 +18,8 @@ public class Announcement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @ManyToOne
+    @JoinColumn(name = "organization_id")
     private Organization organization;
 
     private String title;

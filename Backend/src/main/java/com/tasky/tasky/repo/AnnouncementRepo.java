@@ -11,4 +11,5 @@ import java.util.List;
 public interface AnnouncementRepo extends JpaRepository<Announcement, Long> {
 
     List<AnnouncementDTO> findByCreatedBy(String createdBy);
+    List<Announcement> findByOrganizationId(Long orgId);
 }

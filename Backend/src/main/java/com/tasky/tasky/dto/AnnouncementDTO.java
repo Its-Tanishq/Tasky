@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @Data
 public class AnnouncementDTO {
 
-    @NotNull(message = "Organization ID cannot be null")
     private Long organizationId;
 
     @NotNull(message = "Announcement title cannot be null")
@@ -19,6 +18,5 @@ public class AnnouncementDTO {
     @NotNull(message = "Announcement content cannot be null")
     private String message;
 
-    @NotNull(message = "Creator information cannot be null")
     private String createdBy;
 }

@@ -10,5 +10,5 @@ import java.util.List;
 @Repository
 public interface TeamRepo extends JpaRepository<Team, Long> {
 
-    List<TeamDTO> findByCreatedBy(String createdBy);
+    List<Team> findByOrganizationId(Long orgId);
 }

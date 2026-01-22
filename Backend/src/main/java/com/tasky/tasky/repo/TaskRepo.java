@@ -13,7 +13,8 @@ import java.util.List;
 @Repository
 public interface TaskRepo extends JpaRepository<Task, Long> {
 
-    List<TaskDTO> findByStatus(TaskStatus status);
-    List<TaskDTO> findByPriority(TaskPriority priority);
-    List<TaskDTO> findByAssignType(TaskAssignType assignType);
+    List<Task> findByStatusAndOrganizationId(TaskStatus status, Long organizationId);
+    List<Task> findByPriorityAndOrganizationId(TaskPriority priority, Long organizationId);
+    List<Task> findByAssignTypeAndOrganizationId(TaskAssignType assignType, Long organizationId);
+    List<Task> findByOrganizationId(Long organizationId);
 }

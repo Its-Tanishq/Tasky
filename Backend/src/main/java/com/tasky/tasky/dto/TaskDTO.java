@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 @Data
 public class TaskDTO {
 
-    @NotNull(message = "Organization ID cannot be null")
     private Long organizationId;
 
     @NotNull(message = "Task title cannot be null")

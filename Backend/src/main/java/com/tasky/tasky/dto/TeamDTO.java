@@ -15,6 +15,5 @@ public class TeamDTO {
 
     private String createdBy;
 
-    @NotNull(message = "Organization ID cannot be null")
     private Long organizationId;
 }

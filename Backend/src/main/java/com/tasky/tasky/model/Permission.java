@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 @Table
-public class Role {
+public class Permission {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,12 +20,9 @@ public class Role {
 
     private String name;
 
-    @ManyToOne
-    @JoinColumn(name = "organization_id")
-    private Organization organization;
+    private String module;
 
-    @Column(columnDefinition = "TEXT")
-    private String permissions;
+    private String description;
 
     private LocalDateTime createdAt;
 

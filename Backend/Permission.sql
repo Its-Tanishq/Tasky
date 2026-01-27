@@ -1,0 +1,16 @@
+INSERT INTO permissions (name, module, description) VALUES
+('CREATE_EMPLOYEE', 'EMPLOYEE', 'Create new employees'),
+('UPDATE_EMPLOYEE', 'EMPLOYEE', 'Update employee details'),
+('DELETE_EMPLOYEE', 'EMPLOYEE', 'Delete employees'),
+('VIEW_EMPLOYEES', 'EMPLOYEE', 'View employee list'),
+('CREATE_TASK', 'TASK', 'Create new tasks'),
+('UPDATE_TASK', 'TASK', 'Update task details'),
+('DELETE_TASK', 'TASK', 'Delete tasks'),
+('ASSIGN_TASK', 'TASK', 'Assign tasks to employees'),
+('CREATE_TEAM', 'TEAM', 'Create new teams'),
+('UPDATE_TEAM', 'TEAM', 'Update team details'),
+('DELETE_TEAM', 'TEAM', 'Delete teams'),
+('CREATE_ROLE', 'ROLE', 'Create new roles'),
+('UPDATE_ROLE', 'ROLE', 'Update role permissions'),
+('DELETE_ROLE', 'ROLE', 'Delete roles'),
+('UPDATE_ORGANIZATION', 'ORGANIZATION', 'Update organization settings');

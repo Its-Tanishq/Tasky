@@ -19,4 +19,6 @@ public class AnnouncementDTO {
     private String message;
 
     private String createdBy;
+
+    private String updatedBy;
 }

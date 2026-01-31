@@ -1,6 +1,8 @@
 package com.tasky.tasky.controller;
 
+import com.tasky.tasky.dto.UserContextDTO;
 import com.tasky.tasky.security.JWTUtil;
+import com.tasky.tasky.service.AuthService;
 import com.tasky.tasky.service.RefreshTokenService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,6 +10,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,6 +27,15 @@ public class AuthController {
 
     @Autowired
     private RefreshTokenService refreshTokenService;
+
+    @Autowired
+    private AuthService authService;
+
+    @GetMapping("/me")
+    public ResponseEntity<?> aboutMe(@AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long empId = userContextDTO.getEmpId();
+        return ResponseEntity.ok(authService.myDetails(empId));
+    }
 
     @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshToken(HttpServletRequest req) {

@@ -1,12 +1,14 @@
 package com.tasky.tasky.service;
 
 import com.tasky.tasky.dto.EmployeeDTO;
+import com.tasky.tasky.exception.InvalidCredentialsException;
 import com.tasky.tasky.model.Employee;
 import com.tasky.tasky.model.Organization;
 import com.tasky.tasky.model.Role;
 import com.tasky.tasky.repo.EmployeeRepo;
 import com.tasky.tasky.repo.OrganizationRepo;
 import com.tasky.tasky.repo.RoleRepo;
+import com.tasky.tasky.security.RequiresPermission;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,7 +28,8 @@ public class EmployeeService {
     @Autowired
     private RoleRepo roleRepo;
 
-    public void createEmployee(EmployeeDTO employeeDTO, int employeeId) {
+    @RequiresPermission("CREATE_EMPLOYEE")
+    public void createEmployee(Long roleId, EmployeeDTO employeeDTO, long employeeId) {
         Employee employee = mapToEntity(employeeDTO, employeeId); // EmployeeId mean who is creating employee
 
         try {
@@ -41,44 +44,52 @@ public class EmployeeService {
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
         if (!passwordEncoder.matches(employeeDTO.getPassword(), employee.getPassword())) {
-            throw new RuntimeException("Invalid Credentials");
+            throw new InvalidCredentialsException("Invalid Credentials");
         }
     }
 
-    public void updateEmployee(Long employeeId, EmployeeDTO employeeDTO) {
+    @RequiresPermission("UPDATE_EMPLOYEE")
+    public void updateEmployee(Long roleId, Long employeeId, EmployeeDTO employeeDTO, Long updaterEmpId) {
         Employee employee = employeeRepo.findById(employeeId)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
+        Employee updaterEmployee = employeeRepo.findById(updaterEmpId)
+                .orElseThrow(() -> new RuntimeException("Updater employee not found"));
+
         employee.setName(employeeDTO.getName());
         employee.setEmail(employeeDTO.getEmail());
-
-        Organization organization =  organizationRepo.findById(Long.valueOf(employeeDTO.getOrganizationId()))
-                .orElseThrow(() -> new RuntimeException("Organization not found"));
 
         Role role = roleRepo.findByName(employeeDTO.getRole())
                 .orElseThrow(() -> new RuntimeException("Role not found"));
 
         employee.setRole(role);
+        employee.setUpdatedBy(updaterEmployee.getName());
 
         employeeRepo.save(employee);
     }
 
-    public void updatePassword(Long employeeId, String newPassword) {
+    @RequiresPermission("UPDATE_EMPLOYEE")
+    public void updatePassword(Long roleId, Long employeeId, String newPassword, Long updaterEmpId) {
         Employee employee = employeeRepo.findById(employeeId)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
+        Employee updaterEmployee = employeeRepo.findById(updaterEmpId)
+                .orElseThrow(() -> new RuntimeException("Updater employee not found"));
+
         employee.setPassword(passwordEncoder.encode(newPassword));
+        employee.setUpdatedBy(updaterEmployee.getName());
         employeeRepo.save(employee);
     }
 
-    public void deleteEmployee(Long employeeId) {
+    @RequiresPermission("DELETE_EMPLOYEE")
+    public void deleteEmployee(Long roleId, Long employeeId) {
         Employee employee = employeeRepo.findById(employeeId)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
         employeeRepo.delete(employee);
     }
 
-    private Employee mapToEntity(EmployeeDTO employeeDTO, int employeeId) {
+    private Employee mapToEntity(EmployeeDTO employeeDTO, long employeeId) {
         Employee employee = new Employee();
         employee.setName(employeeDTO.getName());
         employee.setEmail(employeeDTO.getEmail());

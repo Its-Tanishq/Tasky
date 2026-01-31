@@ -22,14 +22,24 @@ public class Team {
 
     private String createdBy;
 
+    private String updatedBy;
+
     @ManyToOne
     @JoinColumn(name = "organization_id")
     private Organization organization;
 
     private LocalDateTime createdAt;
 
+    private LocalDateTime updatedAt;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }

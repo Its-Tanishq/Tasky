@@ -46,6 +46,8 @@ public class Task {
 
     private String createdBy;
 
+    private String updatedBy;
+
     @DateTimeFormat
     private LocalDateTime dueDate;
 
@@ -60,6 +62,7 @@ public class Task {
     }
 
     @PostPersist
+    @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }

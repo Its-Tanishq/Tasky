@@ -30,4 +30,6 @@ public class EmployeeDTO {
     private String organizationId;
 
     private String createdBy;
+
+    private String updatedBy;
 }

@@ -1,6 +1,7 @@
 package com.tasky.tasky.service;
 
 import com.tasky.tasky.dto.RoleDTO;
+import com.tasky.tasky.exception.DuplicateResourceException;
 import com.tasky.tasky.model.Employee;
 import com.tasky.tasky.model.Organization;
 import com.tasky.tasky.model.Role;
@@ -42,13 +43,16 @@ public class RoleService {
     private ObjectMapper objectMapper;
 
     @RequiresPermission("CREATE_ROLE")
-    public void createRole(Long roleId, List<RoleDTO> roleList, String email) {
+    public void createRole(Long roleId, List<RoleDTO> roleList, String email, Long empId) {
         Organization organization = organizationRepo.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Organization not found"));
 
+        Employee employee = employeeRepo.findById(empId)
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+
         roleList.forEach(role -> {
             if (roleRepo.findByName(role.getName()).isPresent()) {
-                throw new RuntimeException("Role with name " + role + " already exists");
+                throw new DuplicateResourceException("Role with name " + role + " already exists");
             }
             Role roleEntity = new Role();
             roleEntity.setName(role.getName());
@@ -56,15 +60,28 @@ public class RoleService {
             roleEntity.setPermissions(objectMapper.writeValueAsString(role.getPermissionIds()));
 
             roleEntity.setOrganization(organization);
+            roleEntity.setCreatedBy(employee.getName());
+            roleEntity.setUpdatedBy(employee.getName());
             roleRepo.save(roleEntity);
         });
     }
 
-    public void updateRole(Long roleId, RoleDTO roleDTO) {
-        Role role = roleRepo.findById(roleId)
+    @RequiresPermission("UPDATE_ROLE")
+    public void updateRole(Long roleId, Long id, RoleDTO roleDTO, Long empId) {
+        Role role = roleRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Role not found"));
 
+        Employee employee = employeeRepo.findById(empId)
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+        Optional<Role> isExist = roleRepo.findByName(roleDTO.getName());
+
+        if (isExist.isPresent() && isExist.get().getOrganization().getId().equals(role.getOrganization().getId())) {
+            throw new DuplicateResourceException("Role with name " + roleDTO.getName() + " already exists");
+        }
+
         role.setName(roleDTO.getName());
+        role.setUpdatedBy(employee.getName());
 
         try {
             role.setPermissions(objectMapper.writeValueAsString(roleDTO.getPermissionIds()));
@@ -75,8 +92,8 @@ public class RoleService {
         roleRepo.save(role);
     }
 
-    public List<Long> getAllPermissionsByRole (Long roleId) {
-        Role role = roleRepo.findById(roleId)
+    public List<Long> getAllPermissionsByRole (Long id) {
+        Role role = roleRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Role not found"));
 
         List<Long> permissions;
@@ -88,7 +105,8 @@ public class RoleService {
         }
     }
 
-    public void deleteRole(int id) {
+    @RequiresPermission("DELETE_ROLE")
+    public void deleteRole(Long roleId, int id) {
         Role role = roleRepo.findById((long) id)
                 .orElseThrow(() -> new RuntimeException("Role not found"));
         Optional<List<Employee>> employee = employeeRepo.findByRoleId(role.getId());

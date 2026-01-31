@@ -13,4 +13,8 @@ INSERT INTO permissions (name, module, description) VALUES
 ('CREATE_ROLE', 'ROLE', 'Create new roles'),
 ('UPDATE_ROLE', 'ROLE', 'Update role permissions'),
 ('DELETE_ROLE', 'ROLE', 'Delete roles'),
-('UPDATE_ORGANIZATION', 'ORGANIZATION', 'Update organization settings');
+('UPDATE_ORGANIZATION', 'ORGANIZATION', 'Update organization settings'),
+("CREATE_ANNOUNCEMENT", "ANNOUNCEMENT", "Create new announcements"),
+("UPDATE_ANNOUNCEMENT", "ANNOUNCEMENT", "Update announcement details"),
+("DELETE_ANNOUNCEMENT", "ANNOUNCEMENT", "Delete announcements"),
+("VIEW_ANNOUNCEMENT", "ANNOUNCEMENT", "View announcements");

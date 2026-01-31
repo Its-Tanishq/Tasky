@@ -1,5 +1,6 @@
 package com.tasky.tasky.security;
 
+import com.tasky.tasky.exception.InsufficientPermissionException;
 import com.tasky.tasky.model.Permission;
 import com.tasky.tasky.model.Role;
 import com.tasky.tasky.repo.PermissionRepo;
@@ -8,13 +9,10 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Aspect
@@ -55,6 +53,6 @@ public class SecurityAspect {
             }
         }
 
-        throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        throw new InsufficientPermissionException("Insufficient Permissions");
     }
 }

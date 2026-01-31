@@ -1,10 +1,12 @@
 package com.tasky.tasky.service;
 
 import com.tasky.tasky.dto.TaskDTO;
+import com.tasky.tasky.exception.InvalidTaskAssignmentException;
 import com.tasky.tasky.model.*;
 import com.tasky.tasky.repo.EmployeeRepo;
 import com.tasky.tasky.repo.TaskRepo;
 import com.tasky.tasky.repo.TeamRepo;
+import com.tasky.tasky.security.RequiresPermission;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +24,8 @@ public class TaskService {
     @Autowired
     private TeamRepo teamRepo;
 
-    public void createTask(TaskDTO taskDTO, Long empId) {
+    @RequiresPermission("CREATE_TASK")
+    public void createTask(Long roleId, TaskDTO taskDTO, Long empId) {
         Task task = mapToEntity(taskDTO, empId);
         try {
             taskRepo.save(task);
@@ -31,9 +34,13 @@ public class TaskService {
         }
     }
 
-    public void updateTask(Long taskId, TaskDTO taskDTO) {
+    @RequiresPermission("UPDATE_TASK")
+    public void updateTask(Long roleId, Long taskId, TaskDTO taskDTO, Long empId) {
         Task task = taskRepo.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found with id: " + taskId));
+
+        Employee employee = employeeRepo.findById(empId)
+                .orElseThrow(() -> new IllegalArgumentException("Employee not found with id: " + empId));
 
         task.setTitle(taskDTO.getTitle());
         task.setDescription(taskDTO.getDescription());
@@ -42,7 +49,7 @@ public class TaskService {
         task.setAssignType(taskDTO.getAssignType());
         if (taskDTO.getAssignType().equals(TaskAssignType.EMPLOYEE)) {
             if (taskDTO.getAssignedEmployeeId() == null) {
-                throw new IllegalArgumentException("Assigned employee ID cannot be null when assign type is EMPLOYEE");
+                throw new InvalidTaskAssignmentException("Assigned employee ID cannot be null when assign type is EMPLOYEE");
             }
             Employee assignedEmployee = employeeRepo.findById(taskDTO.getAssignedEmployeeId())
                     .orElseThrow(() -> new IllegalArgumentException("Employee not found with id: " + taskDTO.getAssignedEmployeeId()));
@@ -50,7 +57,7 @@ public class TaskService {
             task.setAssignedTeam(null);
         } else if (taskDTO.getAssignType().equals(TaskAssignType.TEAM)) {
             if (taskDTO.getAssignedTeamId() == null) {
-                throw new IllegalArgumentException("Assigned team ID cannot be null when assign type is TEAM");
+                throw new InvalidTaskAssignmentException("Assigned team ID cannot be null when assign type is TEAM");
             }
             Team team = teamRepo.findById(taskDTO.getAssignedTeamId())
                     .orElseThrow(() -> new IllegalArgumentException("Team not found with id: " + taskDTO.getAssignedTeamId()));
@@ -60,11 +67,13 @@ public class TaskService {
             throw new IllegalArgumentException("Invalid task assign type: " + taskDTO.getAssignType());
         }
         task.setDueDate(taskDTO.getDueDate());
+        task.setUpdatedBy(employee.getName());
 
         taskRepo.save(task);
     }
 
-    public void deleteTask(Long taskId) {
+    @RequiresPermission("DELETE_TASK")
+    public void deleteTask(Long roleId, Long taskId) {
         Task task = taskRepo.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found with id: " + taskId));
         taskRepo.delete(task);
@@ -131,14 +140,14 @@ public class TaskService {
         task.setAssignType(taskDTO.getAssignType());
         if (taskDTO.getAssignType().equals(TaskAssignType.EMPLOYEE)) {
             if (taskDTO.getAssignedEmployeeId() == null) {
-                throw new IllegalArgumentException("Assigned employee ID cannot be null when assign type is EMPLOYEE");
+                throw new InvalidTaskAssignmentException("Assigned employee ID cannot be null when assign type is EMPLOYEE");
             }
             Employee assignedEmployee = employeeRepo.findById(taskDTO.getAssignedEmployeeId())
                     .orElseThrow(() -> new IllegalArgumentException("Employee not found with id: " + taskDTO.getAssignedEmployeeId()));
             task.setAssignedEmployee(assignedEmployee);
         } else if (taskDTO.getAssignType().equals(TaskAssignType.TEAM)) {
             if (taskDTO.getAssignedTeamId() == null) {
-                throw new IllegalArgumentException("Assigned team ID cannot be null when assign type is TEAM");
+                throw new InvalidTaskAssignmentException("Assigned team ID cannot be null when assign type is TEAM");
             }
             Team team = teamRepo.findById(taskDTO.getAssignedTeamId())
                     .orElseThrow(() -> new IllegalArgumentException("Team not found with id: " + taskDTO.getAssignedTeamId()));

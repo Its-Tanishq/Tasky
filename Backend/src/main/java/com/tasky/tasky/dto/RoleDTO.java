@@ -19,4 +19,8 @@ public class RoleDTO {
     private List<Long> permissionIds;
 
     private Long organizationId;
+
+    private String createdBy;
+
+    private String updatedBy;
 }

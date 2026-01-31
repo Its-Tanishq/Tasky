@@ -1,6 +1,7 @@
 package com.tasky.tasky.controller;
 
 import com.tasky.tasky.dto.EmployeeDTO;
+import com.tasky.tasky.dto.UserContextDTO;
 import com.tasky.tasky.security.JWTUtil;
 import com.tasky.tasky.service.EmployeeService;
 import com.tasky.tasky.service.RefreshTokenService;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -29,11 +31,10 @@ public class EmployeeController {
     private RefreshTokenService refreshTokenService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createEmployee(@Valid @RequestBody EmployeeDTO employeeDTO, HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-        String token = authHeader.substring(7);
-        int empId = jwtUtil.getEmpIdFromToken(token);
-        employeeService.createEmployee(employeeDTO, empId);
+    public ResponseEntity<?> createEmployee(@Valid @RequestBody EmployeeDTO employeeDTO, @AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long empId = userContextDTO.getEmpId();
+        long roleId = userContextDTO.getRoleId();
+        employeeService.createEmployee(roleId, employeeDTO, empId);
         return ResponseEntity.ok().body("Employee created successfully");
     }
 
@@ -63,21 +64,27 @@ public class EmployeeController {
                 .body(responseBody);
     }
 
-    @PutMapping("/update/{employeeId}")
-    public ResponseEntity<?> updateEmployee(@PathVariable Long employeeId, @Valid @RequestBody EmployeeDTO employeeDTO) {
-        employeeService.updateEmployee(employeeId, employeeDTO);
+    @PutMapping("/update")
+    public ResponseEntity<?> updateEmployee(@Valid @RequestBody EmployeeDTO employeeDTO, @AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long empId = userContextDTO.getEmpId();
+        long roleId = userContextDTO.getRoleId();
+        long updaterEmpId = userContextDTO.getEmpId();
+        employeeService.updateEmployee(roleId, empId, employeeDTO, updaterEmpId);
         return ResponseEntity.ok().body("Employee updated successfully");
     }
 
     @PutMapping("/update-password/{employeeId}")
-    public ResponseEntity<?> updateEmployeePassword(@PathVariable Long employeeId, @RequestBody String newPassword) {
-        employeeService.updatePassword(employeeId, newPassword);
+    public ResponseEntity<?> updateEmployeePassword(@PathVariable Long employeeId, @RequestBody String newPassword, @AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long roleId = userContextDTO.getRoleId();
+        long updaterEmpId = userContextDTO.getEmpId();
+        employeeService.updatePassword(roleId, employeeId, newPassword, updaterEmpId);
         return ResponseEntity.ok().body("Employee password updated successfully");
     }
 
     @DeleteMapping("/delete/{employeeId}")
-    public ResponseEntity<?> deleteEmployee(@PathVariable Long employeeId) {
-        employeeService.deleteEmployee(employeeId);
+    public ResponseEntity<?> deleteEmployee(@PathVariable Long employeeId, @AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long roleId = userContextDTO.getRoleId();
+        employeeService.deleteEmployee(roleId, employeeId);
         return ResponseEntity.ok().body("Employee deleted successfully");
     }
 }

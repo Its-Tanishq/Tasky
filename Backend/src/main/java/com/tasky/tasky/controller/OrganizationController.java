@@ -1,6 +1,7 @@
 package com.tasky.tasky.controller;
 
 import com.tasky.tasky.dto.OrganizationDTO;
+import com.tasky.tasky.dto.UserContextDTO;
 import com.tasky.tasky.security.JWTUtil;
 import com.tasky.tasky.service.OrganizationService;
 import com.tasky.tasky.service.RefreshTokenService;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -80,14 +82,18 @@ public class OrganizationController {
     }
 
     @PutMapping("/update-organization")
-    public ResponseEntity<?> updateOrganization(@RequestBody Map<String, String> updateRequest) {
-        organizationService.updateOrganization(updateRequest.get("oldEmail"), updateRequest.get("newEmail"), updateRequest.get("newName"));
+    public ResponseEntity<?> updateOrganization(@RequestBody Map<String, String> updateRequest, @AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long roleId = userContextDTO.getRoleId();
+        long updaterEmpId = userContextDTO.getEmpId();
+        organizationService.updateOrganization(roleId, updateRequest.get("oldEmail"), updateRequest.get("newEmail"), updateRequest.get("newName"), updaterEmpId);
         return ResponseEntity.ok("Organization Updated Successfully");
     }
 
     @PutMapping("/update-password")
-    public ResponseEntity<?> updatePassword(@RequestBody Map<String, String> updatePasswordRequest) {
-        organizationService.updatePassword(updatePasswordRequest.get("email"), updatePasswordRequest.get("oldPassword"), updatePasswordRequest.get("newPassword"));
+    public ResponseEntity<?> updatePassword(@RequestBody Map<String, String> updatePasswordRequest, @AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long roleId = userContextDTO.getRoleId();
+        long updaterEmpId = userContextDTO.getEmpId();
+        organizationService.updatePassword(roleId, updatePasswordRequest.get("email"), updatePasswordRequest.get("oldPassword"), updatePasswordRequest.get("newPassword"), updaterEmpId);
         return ResponseEntity.ok("Password Updated Successfully");
     }
 
@@ -116,8 +122,9 @@ public class OrganizationController {
     }
 
     @PutMapping("/suspend-organization")
-    public ResponseEntity<?> suspendOrganization(@RequestBody String email) {
-        organizationService.suspendOrganization(email);
+    public ResponseEntity<?> suspendOrganization(@RequestBody String email, @AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long roleId = userContextDTO.getRoleId();
+        organizationService.suspendOrganization(roleId, email);
         return ResponseEntity.ok("Organization Suspended Successfully");
     }
 
@@ -128,8 +135,9 @@ public class OrganizationController {
     }
 
     @PutMapping("/delete-organization")
-    public ResponseEntity<?> deleteOrganization(@RequestBody String email) {
-        organizationService.deleteOrganization(email);
+    public ResponseEntity<?> deleteOrganization(@RequestBody String email, @AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long roleId = userContextDTO.getRoleId();
+        organizationService.deleteOrganization(roleId, email);
         return ResponseEntity.ok("Organization Deleted Successfully");
     }
 

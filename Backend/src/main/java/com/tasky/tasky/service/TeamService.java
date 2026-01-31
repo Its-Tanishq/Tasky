@@ -6,6 +6,7 @@ import com.tasky.tasky.model.Team;
 import com.tasky.tasky.repo.EmployeeRepo;
 import com.tasky.tasky.repo.OrganizationRepo;
 import com.tasky.tasky.repo.TeamRepo;
+import com.tasky.tasky.security.RequiresPermission;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +24,8 @@ public class TeamService {
     @Autowired
     private OrganizationRepo organizationRepo;
 
-    public void createTeam(TeamDTO teamDTO, Long empId) {
+    @RequiresPermission("CREATE_TEAM")
+    public void createTeam(Long roleId, TeamDTO teamDTO, Long empId) {
         Team team = mapToEntity(teamDTO, empId);
         try {
             teamRepo.save(team);
@@ -32,10 +34,16 @@ public class TeamService {
         }
     }
 
-    public void updateTeam(Long teamId, TeamDTO teamDTO) {
+    @RequiresPermission("UPDATE_TEAM")
+    public void updateTeam(Long roleId, Long teamId, TeamDTO teamDTO, Long empId) {
         Team existingTeam = teamRepo.findById(teamId)
                 .orElseThrow(() -> new RuntimeException("Team not found"));
+        
+        Employee employee = employeeRepo.findById(empId)
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+        
         existingTeam.setName(teamDTO.getName());
+        existingTeam.setUpdatedBy(employee.getName());
         try {
             teamRepo.save(existingTeam);
         } catch (Exception e) {
@@ -43,7 +51,8 @@ public class TeamService {
         }
     }
 
-    public void deleteTeam(Long teamId) {
+    @RequiresPermission("DELETE_TEAM")
+    public void deleteTeam(Long roleId, Long teamId) {
         Team team = teamRepo.findById(teamId)
                 .orElseThrow(() -> new RuntimeException("Team not found"));
         teamRepo.delete(team);
@@ -54,7 +63,8 @@ public class TeamService {
         return teams;
     }
 
-    public void addInTeam(Long teamId, Long empId) {
+    @RequiresPermission("UPDATE_TEAM")
+    public void addInTeam(Long roleId, Long teamId, Long empId) {
         Team team = teamRepo.findById(teamId)
                 .orElseThrow(() -> new RuntimeException("Team not found"));
         Employee employee = employeeRepo.findById(empId)
@@ -63,7 +73,8 @@ public class TeamService {
         employeeRepo.save(employee);
     }
 
-    public void removeFromTeam(Long empId) {
+    @RequiresPermission("UPDATE_TEAM")
+    public void removeFromTeam(Long roleId, Long empId) {
         Employee employee = employeeRepo.findById(empId)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
         employee.setTeam(null);

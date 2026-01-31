@@ -38,6 +38,8 @@ public class TaskDTO {
 
     private String createdBy;
 
+    private String updatedBy;
+
     @NotNull(message = "Due date cannot be null")
     @DateTimeFormat
     private LocalDateTime dueDate;

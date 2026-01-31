@@ -1,12 +1,14 @@
 package com.tasky.tasky.controller;
 
 import com.tasky.tasky.dto.TaskDTO;
+import com.tasky.tasky.dto.UserContextDTO;
 import com.tasky.tasky.security.JWTUtil;
 import com.tasky.tasky.service.TaskService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,73 +22,85 @@ public class TaskController {
     private JWTUtil jwtUtil;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createTask(@Valid @RequestBody TaskDTO taskDTO, HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-        String token = authHeader.substring(7);
-        long empId = jwtUtil.getEmpIdFromToken(token);
-        taskService.createTask(taskDTO, empId);
+    public ResponseEntity<?> createTask(@Valid @RequestBody TaskDTO taskDTO, @AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long empId = userContextDTO.getEmpId();
+        long roleId = userContextDTO.getRoleId();
+        taskService.createTask(roleId, taskDTO, empId);
         return ResponseEntity.ok("Task created successfully");
     }
 
     @PutMapping("/update/{taskId}")
-    public ResponseEntity<?> updateTask(@PathVariable Long taskId, @Valid @RequestBody TaskDTO taskDTO) {
-        taskService.updateTask(taskId, taskDTO);
+    public ResponseEntity<?> updateTask(@PathVariable Long taskId, @Valid @RequestBody TaskDTO taskDTO, @AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long roleId = userContextDTO.getRoleId();
+        long empId = userContextDTO.getEmpId();
+        taskService.updateTask(roleId, taskId, taskDTO, empId);
         return ResponseEntity.ok("Task updated successfully");
     }
 
     @DeleteMapping("/delete/{taskId}")
-    public ResponseEntity<?> deleteTask(@PathVariable Long taskId) {
-        taskService.deleteTask(taskId);
+    public ResponseEntity<?> deleteTask(@PathVariable Long taskId, @AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long roleId = userContextDTO.getRoleId();
+        taskService.deleteTask(roleId, taskId);
         return ResponseEntity.ok("Task deleted successfully");
     }
 
-    @GetMapping("/get/{orgId}")
-    public ResponseEntity<?> getTasks(@PathVariable Long orgId) {
+    @GetMapping("/get")
+    public ResponseEntity<?> getTasks(@AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long orgId = userContextDTO.getOrgId();
         return ResponseEntity.ok(taskService.taskList(orgId));
     }
 
-    @GetMapping("/getLowPriorityTask/{orgId}")
-    public ResponseEntity<?> getTasksByLowPriority(@PathVariable Long orgId) {
+    @GetMapping("/getLowPriorityTask")
+    public ResponseEntity<?> getTasksByLowPriority(@AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long orgId = userContextDTO.getOrgId();
         return ResponseEntity.ok(taskService.lowPriorityTasks(orgId));
     }
 
-    @GetMapping("/getMediumPriorityTask/{orgId}")
-    public ResponseEntity<?> getTasksByMediumPriority(@PathVariable Long orgId) {
+    @GetMapping("/getMediumPriorityTask")
+    public ResponseEntity<?> getTasksByMediumPriority(@AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long orgId = userContextDTO.getOrgId();
         return ResponseEntity.ok(taskService.mediumPriorityTasks(orgId));
     }
 
-    @GetMapping("/getHighPriorityTask/{orgId}")
-    public ResponseEntity<?> getTasksByHighPriority(@PathVariable Long orgId) {
+    @GetMapping("/getHighPriorityTask")
+    public ResponseEntity<?> getTasksByHighPriority(@AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long orgId = userContextDTO.getOrgId();
         return ResponseEntity.ok(taskService.highPriorityTasks(orgId));
     }
 
-    @GetMapping("/getPendingTasks/{orgId}")
-    public ResponseEntity<?> getTasksByPendingStatus(@PathVariable Long orgId) {
+    @GetMapping("/getPendingTasks")
+    public ResponseEntity<?> getTasksByPendingStatus(@AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long orgId = userContextDTO.getOrgId();
         return ResponseEntity.ok(taskService.taskStatusPending(orgId));
     }
 
-    @GetMapping("/getInProgressTasks/{orgId}")
-    public ResponseEntity<?> getTasksByInProgressStatus(@PathVariable Long orgId) {
+    @GetMapping("/getInProgressTasks")
+    public ResponseEntity<?> getTasksByInProgressStatus(@AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long orgId = userContextDTO.getOrgId();
         return ResponseEntity.ok(taskService.taskStatusInProgress(orgId));
     }
 
-    @GetMapping("/getCompletedTasks/{orgId}")
-    public ResponseEntity<?> getTasksByCompletedStatus(@PathVariable Long orgId) {
+    @GetMapping("/getCompletedTasks")
+    public ResponseEntity<?> getTasksByCompletedStatus(@AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long orgId = userContextDTO.getOrgId();
         return ResponseEntity.ok(taskService.taskStatusDone(orgId));
     }
 
-    @GetMapping("/getCancelledTasks/{orgId}")
-    public ResponseEntity<?> getTasksByCancelledStatus(@PathVariable Long orgId) {
+    @GetMapping("/getCancelledTasks")
+    public ResponseEntity<?> getTasksByCancelledStatus(@AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long orgId = userContextDTO.getOrgId();
         return ResponseEntity.ok(taskService.taskStatusCancelled(orgId));
     }
 
-    @GetMapping("/getAssignedTypeTeam/{orgId}")
-    public ResponseEntity<?> getAssignedTypeTeam(@PathVariable Long orgId) {
+    @GetMapping("/getAssignedTypeTeam")
+    public ResponseEntity<?> getAssignedTypeTeam(@AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long orgId = userContextDTO.getOrgId();
         return ResponseEntity.ok(taskService.taskAssignTypeTeam(orgId));
     }
 
-    @GetMapping("/getAssignedTypeEmployee/{orgId}")
-    public ResponseEntity<?> getAssignedTypeEmployee(@PathVariable Long orgId) {
+    @GetMapping("/getAssignedTypeEmployee")
+    public ResponseEntity<?> getAssignedTypeEmployee(@AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long orgId = userContextDTO.getOrgId();
         return ResponseEntity.ok(taskService.taskAssignTypeEmployee(orgId));
     }
 

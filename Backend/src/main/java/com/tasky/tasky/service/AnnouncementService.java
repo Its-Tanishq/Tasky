@@ -5,6 +5,7 @@ import com.tasky.tasky.model.Announcement;
 import com.tasky.tasky.model.Employee;
 import com.tasky.tasky.repo.AnnouncementRepo;
 import com.tasky.tasky.repo.EmployeeRepo;
+import com.tasky.tasky.security.RequiresPermission;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +20,8 @@ public class AnnouncementService {
     @Autowired
     private EmployeeRepo employeeRepo;
 
-    public void createAnnouncement(AnnouncementDTO announcementDTO, Long empId) {
+    @RequiresPermission("CREATE_ANNOUNCEMENT")
+    public void createAnnouncement(Long roleId, AnnouncementDTO announcementDTO, Long empId) {
         Announcement announcement = mapToEntity(announcementDTO, empId);
         try {
             announcementRepo.save(announcement);
@@ -28,22 +30,29 @@ public class AnnouncementService {
         }
     }
 
-    public void updateAnnouncement(Long announcementId, AnnouncementDTO announcementDTO) {
+    @RequiresPermission("UPDATE_ANNOUNCEMENT")
+    public void updateAnnouncement(Long roleId, Long announcementId, AnnouncementDTO announcementDTO, Long empId) {
         Announcement announcement = announcementRepo.findById(announcementId)
                 .orElseThrow(() -> new IllegalArgumentException("Announcement not found with id: " + announcementId));
 
+        Employee employee = employeeRepo.findById(empId)
+                .orElseThrow(() -> new IllegalArgumentException("Employee not found with id: " + empId));
+
         announcement.setTitle(announcementDTO.getTitle());
         announcement.setMessage(announcementDTO.getMessage());
+        announcement.setUpdatedBy(employee.getName());
 
         announcementRepo.save(announcement);
     }
 
-    public List<Announcement> getAnnouncements(Long orgId) {
+    @RequiresPermission("VIEW_ANNOUNCEMENT")
+    public List<Announcement> getAnnouncements(Long roleId, Long orgId) {
         List<Announcement> announcements = announcementRepo.findByOrganizationId(orgId);
         return announcements;
     }
 
-    public void deleteAnnouncement(Long announcementId) {
+    @RequiresPermission("DELETE_ANNOUNCEMENT")
+    public void deleteAnnouncement(Long roleId, Long announcementId) {
         Announcement announcement = announcementRepo.findById(announcementId)
                 .orElseThrow(() -> new IllegalArgumentException("Announcement not found with id: " + announcementId));
         announcementRepo.delete(announcement);

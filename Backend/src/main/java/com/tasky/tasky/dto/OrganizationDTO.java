@@ -23,4 +23,8 @@ public class OrganizationDTO {
     private String password;
 
     private OrgStatus status = OrgStatus.ACTIVE;
+
+    private String createdBy;
+
+    private String updatedBy;
 }

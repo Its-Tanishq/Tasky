@@ -1,5 +1,6 @@
 package com.tasky.tasky.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,14 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class TeamDTO {
+public class UserContextDTO {
 
-    @NotNull(message = "Team name cannot be null")
-    private String name;
-
-    private String createdBy;
-
-    private String updatedBy;
-
-    private Long organizationId;
+    private Long orgId;
+    private Long empId;
+    private Long roleId;
 }

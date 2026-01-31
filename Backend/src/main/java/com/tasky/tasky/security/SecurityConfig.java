@@ -22,7 +22,21 @@ public class SecurityConfig {
                 .cors(cors -> {})
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/organization/**").permitAll()
+                        .requestMatchers(
+                                "/api/organization/create-organization",
+                                "/api/organization/login-organization",
+                                "/api/organization/forgot-password",
+                                "/api/organization/verify-otp",
+                                "/api/organization/resend-otp",
+                                "/api/organization/reset-password",
+                                "/api/employee/login",
+                                "/api/auth/refresh-token",
+                                "/api/auth/logout",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/api-docs/**"
+                                ).permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

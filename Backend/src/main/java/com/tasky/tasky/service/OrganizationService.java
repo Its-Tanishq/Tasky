@@ -1,15 +1,20 @@
 package com.tasky.tasky.service;
 
 import com.tasky.tasky.dto.OrganizationDTO;
+import com.tasky.tasky.exception.DuplicateResourceException;
+import com.tasky.tasky.exception.InvalidCredentialsException;
 import com.tasky.tasky.exception.ResourceNotFoundException;
 import com.tasky.tasky.model.*;
 import com.tasky.tasky.repo.*;
+import com.tasky.tasky.security.RequiresPermission;
 import com.tasky.tasky.template.EmailTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class OrganizationService {
@@ -35,14 +40,20 @@ public class OrganizationService {
     @Autowired
     private EmailTemplate emailTemplate;
 
+    @Autowired
+    private PermissionRepo permissionRepo;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
     public void createOrganization(OrganizationDTO organizationDTO) {
         Organization organization = mapToEntity(organizationDTO);
 
         if (organizationRepo.findByEmailAndStaus(organization.getEmail()).isPresent()) {
-            throw new RuntimeException("Organization with this email already exists");
+            throw new DuplicateResourceException("Organization with this email already exists");
         }
         if (organizationRepo.findByNameAndStatus(organization.getName()).isPresent()) {
-            throw new RuntimeException("Organization with this name already exists");
+            throw new DuplicateResourceException("Organization with this name already exists");
         }
         
         try {
@@ -71,7 +82,7 @@ public class OrganizationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Employee/Organization Not Found"));
         
         if (!passwordEncoder.matches(organizationDTO.getPassword(), employee.getPassword())) {
-            throw new RuntimeException("Invalid Credentials");
+            throw new InvalidCredentialsException("Invalid Credentials");
         }
 
         Organization organization = employee.getOrganization();
@@ -84,8 +95,13 @@ public class OrganizationService {
     }
 
     // We didn't allow to update password here
-    public void updateOrganization(String oldMail, String newEmail, String newName) {
+    @RequiresPermission("UPDATE_ORGANIZATION")
+    public void updateOrganization(Long roleId, String oldMail, String newEmail, String newName, Long updaterEmpId) {
         Organization organization = organizationRepo.findByEmail(oldMail).orElseThrow(() -> new ResourceNotFoundException("Organization Not Found"));
+        
+        Employee updaterEmployee = employeeRepo.findById(updaterEmpId)
+                .orElseThrow(() -> new RuntimeException("Updater employee not found"));
+        
         if (organization.getStatus() == OrgStatus.SUSPENDED) {
             throw new RuntimeException("Organization is suspended you cannot update information");
         }
@@ -97,16 +113,17 @@ public class OrganizationService {
             if (organizationRepo.findByEmail(newEmail).isEmpty()) {
                 organization.setEmail(newEmail);
             } else if (organizationRepo.findByEmail(newEmail).isPresent() && !newEmail.equals(oldMail)) {
-                throw new RuntimeException("Organization with this email already exists");
+                throw new DuplicateResourceException("Organization with this email already exists");
             }
         }
         if (newName != null && !newName.isEmpty()) {
             if (organizationRepo.findByName(newName).isEmpty()) {
                 organization.setName(newName);
             } else if (organizationRepo.findByName(newName).isPresent() && !newName.equals(organization.getName())) {
-                throw new RuntimeException("Organization with this name already exists");
+                throw new DuplicateResourceException("Organization with this name already exists");
             }
         }
+        organization.setUpdatedBy(updaterEmployee.getName());
         try {
             organizationRepo.save(organization);
             emailService.sendHtmlMail(
@@ -119,12 +136,18 @@ public class OrganizationService {
         }
     }
 
-    public void updatePassword(String email, String oldPassword, String newPassword) {
+    @RequiresPermission("UPDATE_ORGANIZATION")
+    public void updatePassword(Long roleId, String email, String oldPassword, String newPassword, Long updaterEmpId) {
         Organization organization = organizationRepo.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("Organization Not Found"));
+        
+        Employee updaterEmployee = employeeRepo.findById(updaterEmpId)
+                .orElseThrow(() -> new RuntimeException("Updater employee not found"));
+        
         if (!passwordEncoder.matches(oldPassword, organization.getPassword())) {
             throw new RuntimeException("Old Password is incorrect");
         }
         organization.setPassword(passwordEncoder.encode(newPassword));
+        organization.setUpdatedBy(updaterEmployee.getName());
         try {
             organizationRepo.save(organization);
             emailService.sendHtmlMail(
@@ -207,8 +230,21 @@ public class OrganizationService {
         }
     }
 
-    public void suspendOrganization(String email) {
+    @RequiresPermission("DELETE_ORGANIZATION")
+    public void suspendOrganization(Long roleId, String email) {
+        Role currentUserRole = roleRepo.findById(roleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Role Not Found"));
+        
+        if (!"OWNER".equals(currentUserRole.getName())) {
+            throw new RuntimeException("Only organization owner can suspend the organization");
+        }
+        
         Organization organization = organizationRepo.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("Organization Not Found"));
+
+        if (!currentUserRole.getOrganization().getId().equals(organization.getId())) {
+            throw new RuntimeException("You can only suspend your own organization");
+        }
+        
         if (organization.getStatus() == OrgStatus.SUSPENDED) {
             throw new RuntimeException("Organization is already suspended");
         }
@@ -251,8 +287,21 @@ public class OrganizationService {
         }
     }
 
-    public void deleteOrganization(String email) {
+    @RequiresPermission("DELETE_ORGANIZATION")
+    public void deleteOrganization(Long roleId, String email) {
+        Role currentUserRole = roleRepo.findById(roleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Role Not Found"));
+        
+        if (!"OWNER".equals(currentUserRole.getName())) {
+            throw new RuntimeException("Only organization owner can delete the organization");
+        }
+        
         Organization organization = organizationRepo.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("Organization Not Found"));
+
+        if (!currentUserRole.getOrganization().getId().equals(organization.getId())) {
+            throw new RuntimeException("You can only delete your own organization");
+        }
+        
         // Just for safety check
         if (organization.getStatus() == OrgStatus.DELETED) {
             throw new RuntimeException("Organization is already deleted");
@@ -277,6 +326,8 @@ public class OrganizationService {
             organization.setPassword(passwordEncoder.encode(organizationDTO.getPassword()));
         }
         organization.setEmail(organizationDTO.getEmail());
+        organization.setCreatedBy("System");
+        organization.setUpdatedBy("System");
         if (organizationDTO.getStatus() != null) {
             organization.setStatus(organizationDTO.getStatus());
         }
@@ -292,13 +343,27 @@ public class OrganizationService {
 
     private void createOwnerEmployee(OrganizationDTO organizationDTO, Organization organization, Role ownerRole) {
         Employee ownerEmployee = new Employee();
-        ownerEmployee.setName(organizationDTO.getName() + " Owner"); // You can modify this as needed
+        ownerEmployee.setName(organizationDTO.getName());
         ownerEmployee.setEmail(organizationDTO.getEmail());
         ownerEmployee.setPassword(passwordEncoder.encode(organizationDTO.getPassword()));
         ownerEmployee.setOrganization(organization);
         ownerEmployee.setRole(ownerRole);
         ownerEmployee.setIsActive(true);
-        
+
+        List<Permission> permissions = permissionRepo.findAll();
+        List<Long> ownerPermissions  = permissions.stream()
+                        .map(Permission::getId)
+                        .toList();
+
+        try {
+            ownerRole.setPermissions(objectMapper.writeValueAsString(ownerPermissions));
+        } catch (Exception e) {
+            throw new RuntimeException("Error setting owner permissions");
+        }
+
+        ownerEmployee.setCreatedBy("System");
+        ownerEmployee.setUpdatedBy("System");
+
         employeeRepo.save(ownerEmployee);
     }
 

@@ -2,6 +2,7 @@ package com.tasky.tasky.security;
 
 import com.tasky.tasky.model.Employee;
 import com.tasky.tasky.repo.EmployeeRepo;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,7 @@ public class JWTUtil {
         Map<String, Integer> claims = new HashMap<>();
         claims.put("orgId", Math.toIntExact(employee.getOrganization().getId()));
         claims.put("empId", Math.toIntExact(employee.getId()));
-        claims.put("role", Math.toIntExact(employee.getRole().getId()));
+        claims.put("roleId", Math.toIntExact(employee.getRole().getId()));
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -72,16 +73,6 @@ public class JWTUtil {
         }
     }
 
-    public int getOrgIdFromToken(String token) {
-        return getClaimFromToken(token, "orgId");
-    }
-    public int getEmpIdFromToken(String token) {
-        return getClaimFromToken(token, "empId");
-    }
-    public int getRoleIdFromToken(String token) {
-        return getClaimFromToken(token, "role");
-    }
-
     public String getEmailFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
@@ -91,12 +82,10 @@ public class JWTUtil {
                 .getSubject();
     }
 
-    private int getClaimFromToken(String token, String claimKey) {
-        return (int) Jwts.parserBuilder()
+    public Claims extractAllClaims(String token) {
+        return Jwts.parser()
                 .setSigningKey(getSigningKey())
-                .build()
                 .parseClaimsJws(token)
-                .getBody()
-                .get(claimKey);
+                .getBody();
     }
 }

@@ -1,6 +1,8 @@
 package com.tasky.tasky.security;
 
+import com.tasky.tasky.dto.UserContextDTO;
 import com.tasky.tasky.service.CustomUserDetailService;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,7 +50,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
 
             if (jwtUtil.validateToken(jwtToken)) {
-                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                Claims claims = jwtUtil.extractAllClaims(jwtToken);
+                UserContextDTO userContextDTO = new UserContextDTO(
+                        claims.get("orgId", Long.class),
+                        claims.get("empId", Long.class),
+                        claims.get("roleId", Long.class)
+                );
+
+                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userContextDTO, null, userDetails.getAuthorities());
 
                 authenticationToken.setDetails(new WebAuthenticationDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);

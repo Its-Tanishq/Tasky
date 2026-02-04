@@ -79,7 +79,7 @@ public class OrganizationService {
     public void loginOrganization(OrganizationDTO organizationDTO) {
         // Check if employee exists with this email (since we now create employees for organizations)
         Employee employee = employeeRepo.findByEmail(organizationDTO.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("Employee/Organization Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Organization Not Found"));
         
         if (!passwordEncoder.matches(organizationDTO.getPassword(), employee.getPassword())) {
             throw new InvalidCredentialsException("Invalid Credentials");

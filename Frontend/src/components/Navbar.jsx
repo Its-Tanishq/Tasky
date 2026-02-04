@@ -21,7 +21,7 @@ const navLinks = [
     { name: 'About', href: '#about' }
 ];
 
-const Navbar = () => {
+const Navbar = ({ onAuthOpen }) => {
     const { theme, toggleTheme } = useContext(ThemeContext);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -51,6 +51,13 @@ const Navbar = () => {
         }, 300);
     };
 
+    const handleLinkClick = (e, view = 'initial') => {
+        e.preventDefault();
+        if (onAuthOpen) onAuthOpen(view);
+        setIsDropdownOpen(false);
+        setIsMobileMenuOpen(false);
+    };
+
     return (
         <nav className='top-0 w-full z-50 transition-all duration-300 pt-6 pt-[1.5rem]'>
             <div className='flex justify-between md:justify-around items-center px-6 md:px-0 container mx-auto'>
@@ -76,14 +83,17 @@ const Navbar = () => {
                         onMouseEnter={handleMouseEnter}
                         onMouseLeave={handleMouseLeave}
                     >
-                        <button className='flex items-center gap-2 bg-transparent border-2 border-solid border-[var(--secondary-color)] px-6 py-2 rounded-full text-[var(--secondary-color)] hover:bg-[var(--secondary-color)] hover:text-[#000] cursor-pointer transition-all duration-300 font-medium'>
+                        <button
+                            onClick={onAuthOpen}
+                            className='flex items-center gap-2 bg-transparent border-2 border-solid border-[var(--secondary-color)] px-6 py-2 rounded-full text-[var(--secondary-color)] hover:bg-[var(--secondary-color)] hover:text-[#000] cursor-pointer transition-all duration-300 font-medium'
+                        >
                             Get Started <ChevronDown size={16} />
                         </button>
 
                         <div className={`absolute right-0 top-full w-64 pt-2 transition-all duration-300 transform origin-top-right z-50 ${isDropdownOpen ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'}`}>
                             <div className="bg-[var(--card-bg)] border border-[var(--glass-border)] rounded-xl shadow-lg overflow-hidden">
                                 <div className="p-2 flex flex-col gap-1">
-                                    <a href="#create-org" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--ui-element-bg)] transition-colors text-[var(--text-color)] no-underline group">
+                                    <a href="#create-org" onClick={(e) => handleLinkClick(e, 'create-org')} className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--ui-element-bg)] transition-colors text-[var(--text-color)] no-underline group">
                                         <div className="p-2 rounded-md bg-purple-500/10 text-purple-500 group-hover:bg-purple-500 group-hover:text-white transition-colors">
                                             <Building2 size={20} />
                                         </div>
@@ -92,7 +102,7 @@ const Navbar = () => {
                                             <span className="text-xs text-[var(--text-secondary)]">For Organization Owner</span>
                                         </div>
                                     </a>
-                                    <a href="#login-org" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--ui-element-bg)] transition-colors text-[var(--text-color)] no-underline group">
+                                    <a href="#login-org" onClick={(e) => handleLinkClick(e, 'login-owner')} className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--ui-element-bg)] transition-colors text-[var(--text-color)] no-underline group">
                                         <div className="p-2 rounded-md bg-sky-500/10 text-sky-500 group-hover:bg-sky-500 group-hover:text-white transition-colors">
                                             <UserStar size={20} />
                                         </div>
@@ -101,7 +111,7 @@ const Navbar = () => {
                                             <span className="text-xs text-[var(--text-secondary)]">For Organization Owner</span>
                                         </div>
                                     </a>
-                                    <a href="#login-employee" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--ui-element-bg)] transition-colors text-[var(--text-color)] no-underline group">
+                                    <a href="#login-employee" onClick={(e) => handleLinkClick(e, 'login-employee')} className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--ui-element-bg)] transition-colors text-[var(--text-color)] no-underline group">
                                         <div className="p-2 rounded-md bg-teal-500/10 text-teal-500 group-hover:bg-teal-500 group-hover:text-white transition-colors">
                                             <User size={20} />
                                         </div>
@@ -143,19 +153,19 @@ const Navbar = () => {
                     </div>
 
                     <div className="flex flex-col gap-2 mt-2">
-                        <a href="#create-org" className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[var(--ui-element-bg)] hover:bg-[var(--primary-color)] hover:text-white transition-colors text-[var(--text-color)] no-underline group">
+                        <a href="#create-org" onClick={(e) => handleLinkClick(e, 'create-org')} className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[var(--ui-element-bg)] hover:bg-[var(--primary-color)] hover:text-white transition-colors text-[var(--text-color)] no-underline group">
                             <Building2 size={20} />
                             <div className="flex flex-col">
                                 <span className="font-medium text-sm">Create Organization</span>
                             </div>
                         </a>
-                        <a href="#login-org" className="flex items-center gap-3 px-4 py-3 rounded-lg border border-[var(--secondary-color)] text-[var(--secondary-color)] hover:bg-[var(--secondary-color)] hover:text-black transition-colors no-underline group">
+                        <a href="#login-org" onClick={(e) => handleLinkClick(e, 'login-owner')} className="flex items-center gap-3 px-4 py-3 rounded-lg border border-[var(--secondary-color)] text-[var(--secondary-color)] hover:bg-[var(--secondary-color)] hover:text-black transition-colors no-underline group">
                             <UserStar size={20} />
                             <div className="flex flex-col">
                                 <span className="font-medium text-sm">Login as Organization Owner</span>
                             </div>
                         </a>
-                        <a href="#login-employee" className="flex items-center gap-3 px-4 py-3 rounded-lg border border-[var(--secondary-color)] text-[var(--secondary-color)] hover:bg-[var(--secondary-color)] hover:text-black transition-colors no-underline group">
+                        <a href="#login-employee" onClick={(e) => handleLinkClick(e, 'login-employee')} className="flex items-center gap-3 px-4 py-3 rounded-lg border border-[var(--secondary-color)] text-[var(--secondary-color)] hover:bg-[var(--secondary-color)] hover:text-black transition-colors no-underline group">
                             <User size={20} />
                             <div className="flex flex-col">
                                 <span className="font-medium text-sm">Login as Employee</span>

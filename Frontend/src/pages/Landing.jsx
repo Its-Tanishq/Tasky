@@ -1,26 +1,51 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import Auth from '../components/Auth'
 import { Activity, Users } from 'lucide-react'
 
 const features = [
     {
-        svg: Users,
+        icon: Users,
         title: "Role-Based Access",
         description: "Granular permission controls to ensure the right people have the right access."
     },
     {
-        svg: Activity,
+        icon: Activity,
         title: "Real-time Sync",
         description: "Watch updates happen instantly across your team as tasks are completed and moved."
     },
 ]
 
+const Feature = ({ icon: Icon, title, description }) => (
+    <div className='bg-[var(--card-bg)] p-8 md:p-10 rounded-[16px] border border-transparent transition-all duration-300 ease-in-out hover:-translate-y-[10px] hover:border-[var(--primary-color)]'>
+        <div className='text-[2.0rem] md:text-[2.5rem] mb-6 inline-block p-4 bg-[rgba(108,92,231,0.1)] rounded-[12px] text-[var(--primary-color)] transition-colors duration-300 ease-in-out'>
+            <Icon />
+        </div>
+        <h3 className='text-xl md:text-[1.5rem] mb-4'>{title}</h3>
+        <p className='text-[var(--text-secondary)]'>{description}</p>
+    </div>
+)
+
 const Landing = () => {
+    const [isAuthOpen, setIsAuthOpen] = useState(false);
+    const [authView, setAuthView] = useState('initial');
+
+    const handleAuthOpen = (view) => {
+        const targetView = typeof view === 'string' ? view : 'initial';
+        setAuthView(targetView);
+        setIsAuthOpen(true);
+    };
+
+    const handleAuthClose = () => {
+        setIsAuthOpen(false);
+        setTimeout(() => setAuthView('initial'), 300);
+    };
 
     return (
         <div className='landing'>
-            <Navbar />
+            <Navbar onAuthOpen={handleAuthOpen} />
+            <Auth isOpen={isAuthOpen} onClose={handleAuthClose} initialView={authView} />
 
             <section className='min-h-screen flex items-center relative overflow-hidden py-20 lg:py-0'>
                 <div className='grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center max-w-[1200px] mx-auto px-6 md:px-8'>
@@ -33,7 +58,7 @@ const Landing = () => {
                             managing roles, and boosting productivity across your entire enterprise.
                         </p>
                         <div className='flex gap-4'>
-                            <button className='btn btn-primary'>Get Started</button>
+                            <button className='btn btn-primary' onClick={handleAuthOpen}>Get Started</button>
                         </div>
                     </div>
                     <div className='relative w-full max-w-[500px] lg:max-w-none mx-auto'>
@@ -67,13 +92,7 @@ const Landing = () => {
                     </div>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8'>
                         {features.map(feature => (
-                            <div key={feature.title} className='bg-[var(--card-bg)] p-8 md:p-10 rounded-[16px] border border-transparent transition-all duration-300 ease-in-out hover:-translate-y-[10px] hover:border-[var(--primary-color)]'>
-                                <div className='text-[2.0rem] md:text-[2.5rem] mb-6 inline-block p-4 bg-[rgba(108,92,231,0.1)] rounded-[12px] text-[var(--primary-color)] transition-colors duration-300 ease-in-out'>
-                                    <feature.svg />
-                                </div>
-                                <h3 className='text-xl md:text-[1.5rem] mb-4'>{feature.title}</h3>
-                                <p className='text-[var(--text-secondary)]'>{feature.description}</p>
-                            </div>
+                            <Feature key={feature.title} icon={feature.icon} title={feature.title} description={feature.description} />
                         ))}
                     </div>
                 </div>

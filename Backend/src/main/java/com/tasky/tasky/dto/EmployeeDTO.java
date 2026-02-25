@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @Data
 public class EmployeeDTO {
 
+    private Long id;
+
     @NotNull(message = "Employee name cannot be null")
     private String name;
 
@@ -26,7 +28,6 @@ public class EmployeeDTO {
     @NotNull(message = "Role cannot be null")
     private String role;
 
-    @NotNull(message = "Organization cannot be null")
     private String organizationId;
 
     private String createdBy;

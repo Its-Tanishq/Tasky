@@ -1,0 +1,92 @@
+[
+  {
+    "id": 1,
+    "name": "CREATE_EMPLOYEE",
+    "description": "Allows creating new employee accounts",
+    "module": "Employee"
+  },
+  {
+    "id": 2,
+    "name": "UPDATE_EMPLOYEE",
+    "description": "Allows updating existing employee details",
+    "module": "Employee"
+  },
+  {
+    "id": 3,
+    "name": "DELETE_EMPLOYEE",
+    "description": "Allows deleting employee accounts",
+    "module": "Employee"
+  },
+  {
+    "id": 4,
+    "name": "VIEW_EMPLOYEE",
+    "description": "Allows viewing employee list and details",
+    "module": "Employee"
+  },
+  {
+    "id": 5,
+    "name": "CREATE_ROLE",
+    "description": "Allows creating new roles",
+    "module": "Role"
+  },
+  {
+    "id": 6,
+    "name": "UPDATE_ROLE",
+    "description": "Allows updating existing roles and permissions",
+    "module": "Role"
+  },
+  {
+    "id": 7,
+    "name": "DELETE_ROLE",
+    "description": "Allows deleting roles",
+    "module": "Role"
+  },
+  {
+    "id": 8,
+    "name": "VIEW_ROLE",
+    "description": "Allows viewing available roles",
+    "module": "Role"
+  },
+  {
+    "id": 9,
+    "name": "UPDATE_ORGANIZATION",
+    "description": "Allows updating organization settings",
+    "module": "Organization"
+  },
+  {
+    "id": 10,
+    "name": "CREATE_TASK",
+    "description": "Allows creating new tasks",
+    "module": "Task"
+  },
+  {
+    "id": 11,
+    "name": "UPDATE_TASK",
+    "description": "Allows updating task details and status",
+    "module": "Task"
+  },
+  {
+    "id": 12,
+    "name": "DELETE_TASK",
+    "description": "Allows deleting tasks",
+    "module": "Task"
+  },
+  {
+    "id": 13,
+    "name": "VIEW_TASK",
+    "description": "Allows viewing tasks",
+    "module": "Task"
+  },
+  {
+    "id": 14,
+    "name": "CREATE_ANNOUNCEMENT",
+    "description": "Allows creating announcements",
+    "module": "Announcement"
+  },
+  {
+    "id": 15,
+    "name": "DELETE_ANNOUNCEMENT",
+    "description": "Allows deleting announcements",
+    "module": "Announcement"
+  }
+]

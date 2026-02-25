@@ -13,10 +13,14 @@ import java.util.List;
 @Data
 public class RoleDTO {
 
+    private Long id;
+
     @NotNull(message = "Role name cannot be null")
     private String name;
 
     private List<Long> permissionIds;
+
+    private List<String> permissions;
 
     private Long organizationId;
 

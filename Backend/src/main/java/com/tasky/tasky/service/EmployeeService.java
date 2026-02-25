@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class EmployeeService {
 
@@ -89,20 +92,41 @@ public class EmployeeService {
         employeeRepo.delete(employee);
     }
 
+    public List<EmployeeDTO> listOfEmployee(Long organizationId) {
+        Organization organization = organizationRepo.findById(organizationId)
+                .orElseThrow(() -> new RuntimeException("Organization not found"));
+
+        List<EmployeeDTO> employeeList = new ArrayList<>();
+        employeeRepo.findByOrganizationId(organization.getId()).forEach(employee -> {
+            EmployeeDTO employeeDTO = new EmployeeDTO();
+            employeeDTO.setId(employee.getId());
+            employeeDTO.setName(employee.getName());
+            employeeDTO.setEmail(employee.getEmail());
+            employeeDTO.setRole(employee.getRole().getName());
+            employeeList.add(employeeDTO);
+        });
+        return employeeList;
+    }
+
     private Employee mapToEntity(EmployeeDTO employeeDTO, long employeeId) {
         Employee employee = new Employee();
         employee.setName(employeeDTO.getName());
         employee.setEmail(employeeDTO.getEmail());
         employee.setPassword(passwordEncoder.encode(employeeDTO.getPassword()));
 
-        Organization organization =  organizationRepo.findById(Long.valueOf(employeeDTO.getOrganizationId()))
-                .orElseThrow(() -> new RuntimeException("Organization not found"));
+        Employee employeeDetail = employeeRepo.findById(Long.valueOf(employeeId))
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+        Organization organization;
+        if (employeeDTO.getOrganizationId() != null && !employeeDTO.getOrganizationId().isEmpty()) {
+            organization = organizationRepo.findById(Long.valueOf(employeeDTO.getOrganizationId()))
+                    .orElseThrow(() -> new RuntimeException("Organization not found"));
+        } else {
+            organization = employeeDetail.getOrganization();
+        }
 
         Role role = roleRepo.findByName(employeeDTO.getRole())
                 .orElseThrow(() -> new RuntimeException("Role not found"));
-
-        Employee employeeDetail = employeeRepo.findById(Long.valueOf(employeeId))
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
         
         employee.setRole(role);
         employee.setOrganization(organization);

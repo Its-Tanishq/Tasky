@@ -4,6 +4,7 @@ import com.tasky.tasky.dto.RoleDTO;
 import com.tasky.tasky.exception.DuplicateResourceException;
 import com.tasky.tasky.model.Employee;
 import com.tasky.tasky.model.Organization;
+import com.tasky.tasky.model.Permission;
 import com.tasky.tasky.model.Role;
 import com.tasky.tasky.repo.EmployeeRepo;
 import com.tasky.tasky.repo.OrganizationRepo;
@@ -20,6 +21,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class RoleService {
@@ -43,27 +45,26 @@ public class RoleService {
     private ObjectMapper objectMapper;
 
     @RequiresPermission("CREATE_ROLE")
-    public void createRole(Long roleId, List<RoleDTO> roleList, String email, Long empId) {
-        Organization organization = organizationRepo.findByEmail(email)
+    public void createRole(Long roleId, RoleDTO role, Long orgId, Long empId) {
+        Organization organization = organizationRepo.findById(orgId)
                 .orElseThrow(() -> new RuntimeException("Organization not found"));
 
         Employee employee = employeeRepo.findById(empId)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
-        roleList.forEach(role -> {
-            if (roleRepo.findByName(role.getName()).isPresent()) {
-                throw new DuplicateResourceException("Role with name " + role + " already exists");
-            }
-            Role roleEntity = new Role();
-            roleEntity.setName(role.getName());
+        if (roleRepo.findByName(role.getName()).isPresent()) {
+            throw new DuplicateResourceException("Role with name " + role + " already exists");
+        }
+        Role roleEntity = new Role();
+        roleEntity.setName(role.getName());
 
-            roleEntity.setPermissions(objectMapper.writeValueAsString(role.getPermissionIds()));
+        roleEntity.setPermissions(objectMapper.writeValueAsString(role.getPermissionIds()));
 
-            roleEntity.setOrganization(organization);
-            roleEntity.setCreatedBy(employee.getName());
-            roleEntity.setUpdatedBy(employee.getName());
-            roleRepo.save(roleEntity);
-        });
+        roleEntity.setOrganization(organization);
+        roleEntity.setCreatedBy(employee.getName());
+        roleEntity.setUpdatedBy(employee.getName());
+        roleRepo.save(roleEntity);
+
     }
 
     @RequiresPermission("UPDATE_ROLE")
@@ -116,15 +117,32 @@ public class RoleService {
         roleRepo.delete(role);
     }
 
-    public List<RoleDTO> getAllRoles(String email) {
-        Organization organization = organizationRepo.findByEmail(email)
+    public List<RoleDTO> getAllRoles(Long orgId) {
+        Organization organization = organizationRepo.findById(orgId)
                 .orElseThrow(() -> new RuntimeException("Organization not found"));
 
         List<RoleDTO> roleList = new ArrayList<>();
         roleRepo.findByOrganization(organization).forEach(role -> {
             RoleDTO roleDTO = new RoleDTO();
+            roleDTO.setId(role.getId());
             roleDTO.setName(role.getName());
             roleDTO.setOrganizationId(organization.getId());
+
+            try {
+                List<Object> rawPermissions = objectMapper.readValue(role.getPermissions(), ArrayList.class);
+                List<Long> permissionIds = rawPermissions.stream()
+                        .map(obj -> Long.parseLong(obj.toString()))
+                        .collect(Collectors.toList());
+                List<Permission> permissionList = permissionRepo.findAllById(permissionIds);
+                List<String> permissionNames = permissionList.stream()
+                        .map(Permission::getName)
+                        .collect(Collectors.toList());
+
+                roleDTO.setPermissions(permissionNames);
+            } catch (Exception e) {
+                throw new RuntimeException("Error processing permissions", e);
+            }
+
             roleList.add(roleDTO);
         });
 

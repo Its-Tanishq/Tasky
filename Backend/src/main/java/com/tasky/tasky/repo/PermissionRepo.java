@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface PermissionRepo extends JpaRepository<Permission, Integer> {
+public interface PermissionRepo extends JpaRepository<Permission, Long> {
 
     Permission findByName(String name);
 }

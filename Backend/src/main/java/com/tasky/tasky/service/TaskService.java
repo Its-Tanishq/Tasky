@@ -138,6 +138,7 @@ public class TaskService {
         task.setDescription(taskDTO.getDescription());
         task.setPriority(taskDTO.getPriority());
         task.setAssignType(taskDTO.getAssignType());
+        task.setStatus(taskDTO.getStatus());
         if (taskDTO.getAssignType().equals(TaskAssignType.EMPLOYEE)) {
             if (taskDTO.getAssignedEmployeeId() == null) {
                 throw new InvalidTaskAssignmentException("Assigned employee ID cannot be null when assign type is EMPLOYEE");

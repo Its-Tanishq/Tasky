@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Building2, User, UserCheck, LogIn, ChevronLeft, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
+import { useUser } from '../Context/UserContext';
 
 const Auth = ({ isOpen, onClose, initialView = 'initial' }) => {
+    const navigate = useNavigate();
+    const { fetchUser } = useUser();
     const [view, setView] = useState('initial');
     const [loginExpanded, setLoginExpanded] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
@@ -39,6 +43,8 @@ const Auth = ({ isOpen, onClose, initialView = 'initial' }) => {
             });
             toast.success(response.data.message);
             localStorage.setItem("accessToken", response.data.accessToken);
+            await fetchUser();
+            navigate('/dashboard');
         } catch (error) {
             toast.error(error.response?.data?.message || error.message);
         } finally {
@@ -55,6 +61,8 @@ const Auth = ({ isOpen, onClose, initialView = 'initial' }) => {
             });
             toast.success(response.data.message);
             localStorage.setItem("accessToken", response.data.accessToken);
+            await fetchUser();
+            navigate('/dashboard');
         } catch (error) {
             toast.error(error.response?.data?.message || error.message);
         } finally {

@@ -64,12 +64,11 @@ public class EmployeeController {
                 .body(responseBody);
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<?> updateEmployee(@Valid @RequestBody EmployeeDTO employeeDTO, @AuthenticationPrincipal UserContextDTO userContextDTO) {
-        long empId = userContextDTO.getEmpId();
+    @PutMapping("/update/{employeeId}")
+    public ResponseEntity<?> updateEmployee(@PathVariable Long employeeId, @Valid @RequestBody EmployeeDTO employeeDTO, @AuthenticationPrincipal UserContextDTO userContextDTO) {
         long roleId = userContextDTO.getRoleId();
         long updaterEmpId = userContextDTO.getEmpId();
-        employeeService.updateEmployee(roleId, empId, employeeDTO, updaterEmpId);
+        employeeService.updateEmployee(roleId, employeeId, employeeDTO, updaterEmpId);
         return ResponseEntity.ok().body("Employee updated successfully");
     }
 
@@ -87,4 +86,11 @@ public class EmployeeController {
         employeeService.deleteEmployee(roleId, employeeId);
         return ResponseEntity.ok().body("Employee deleted successfully");
     }
+
+    @GetMapping("/allEmployees")
+    public ResponseEntity<?> getAllEmployees(@AuthenticationPrincipal UserContextDTO userContextDTO) {
+        long orgId = userContextDTO.getOrgId();
+        return ResponseEntity.ok(employeeService.listOfEmployee(orgId));
+    }
+
 }

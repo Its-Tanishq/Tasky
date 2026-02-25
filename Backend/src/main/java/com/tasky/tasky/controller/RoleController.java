@@ -2,6 +2,7 @@ package com.tasky.tasky.controller;
 
 import com.tasky.tasky.dto.RoleDTO;
 import com.tasky.tasky.dto.UserContextDTO;
+import com.tasky.tasky.model.Role;
 import com.tasky.tasky.security.JWTUtil;
 import com.tasky.tasky.service.RoleService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,14 +25,14 @@ public class RoleController {
     @Autowired
     private JWTUtil jwtUtil;
 
-    @PostMapping("/create-roles")
-    public ResponseEntity<?> createRoles(@Valid @RequestBody List<RoleDTO> roles, @AuthenticationPrincipal UserContextDTO userContextDTO, HttpServletRequest request) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+    @PostMapping("/create-role")
+    public ResponseEntity<?> createRoles(@Valid @RequestBody RoleDTO role, @AuthenticationPrincipal UserContextDTO userContextDTO, HttpServletRequest request) {
+        Long orgId = userContextDTO.getOrgId();
         String authHeader = request.getHeader("Authorization");
         String token = authHeader.substring(7);
         long roleId = userContextDTO.getRoleId();
         long empId = userContextDTO.getEmpId();
-        roleService.createRole(roleId, roles, email, empId);
+        roleService.createRole(roleId, role, orgId, empId);
         return ResponseEntity.ok().body("Roles created successfully");
     }
 
@@ -43,9 +44,9 @@ public class RoleController {
     }
 
     @GetMapping("/get-all-roles")
-    public ResponseEntity<?> getAllRoles() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return ResponseEntity.ok().body(roleService.getAllRoles(email));
+    public ResponseEntity<?> getAllRoles(@AuthenticationPrincipal UserContextDTO userContextDTO) {
+        Long orgId = userContextDTO.getOrgId();
+        return ResponseEntity.ok().body(roleService.getAllRoles(orgId));
     }
 
     @GetMapping("/get-permissions-by-role/{id}")

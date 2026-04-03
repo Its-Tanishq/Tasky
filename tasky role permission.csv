@@ -1,0 +1,16 @@
+﻿id,created_at,description,module,name
+1,,Create new employees,EMPLOYEE,CREATE_EMPLOYEE
+2,,Update employee details,EMPLOYEE,UPDATE_EMPLOYEE
+3,,Delete employees,EMPLOYEE,DELETE_EMPLOYEE
+4,,View employee list,EMPLOYEE,VIEW_EMPLOYEES
+5,,Create new tasks,TASK,CREATE_TASK
+6,,Update task details,TASK,UPDATE_TASK
+7,,Delete tasks,TASK,DELETE_TASK
+8,,Assign tasks to employees,TASK,ASSIGN_TASK
+9,,Create new teams,TEAM,CREATE_TEAM
+10,,Update team details,TEAM,UPDATE_TEAM
+11,,Delete teams,TEAM,DELETE_TEAM
+12,,Create new roles,ROLE,CREATE_ROLE
+13,,Update role permissions,ROLE,UPDATE_ROLE
+14,,Delete roles,ROLE,DELETE_ROLE
+15,,Update organization settings,ORGANIZATION,UPDATE_ORGANIZATION
